@@ -1,54 +1,19 @@
-<license>BSD-3-Clause</license>
-  <exec_depend>rclpy</exec_depend>       <!-- 追加: 実行時に必要なパッケージ -->
-  <exec_depend>std_msgs</exec_depend>    <!-- 追加 -->
-
-
 import rclpy
 from rclpy.node import Node
-from std_msgs.msg import String
+from std_msgs.msg import Int16
 
+rclpy.init()
+node = Node("talker") 
+pub = node.create_publisher(Int16, "countup", 10)
+n = 0 
 
-class Talker(Node):
-    def __init__(self):
-        super().__init__('talker')
+def cb():
+    global n
+    msg = Int16()
+    msg.data = n 
+    pub.publish(msg)
+    n += 1
 
-        self.publisher_ = self.create_publisher(
-            String,
-            'topic',
-            10
-        )
-
-        self.timer = self.create_timer(
-            0.5,
-            self.timer_callback
-        )
-
-        self.count = 0
-
-    def timer_callback(self):
-        msg = String()
-        msg.data = f'Hello ROS 2: {self.count}'
-
-        self.publisher_.publish(msg)
-        self.get_logger().info(msg.data)
-
-        self.count += 1
-
-
-def main(args=None):
-    rclpy.init(args=args)
-
-    node = Talker()
-
-    try:
-        rclpy.spin(node)
-    except KeyboardInterrupt:
-        pass
-    finally:
-        node.destroy_node()
-        rclpy.shutdown()
-
-
-if __name__ == '__main__':
-    main()
-
+def main():
+    node.create_timer(0.5, cb)
+    rclpy.spin(node)
